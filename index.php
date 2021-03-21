@@ -10,29 +10,41 @@ Version: 0.1
 */
 
 
-
     add_action('rest_api_init', function () {
     register_rest_route( 'api/v1', 'images/(?P<image_id>\d+)',array(
                   'methods'  => 'GET',
-                  'callback' => 'get_latest_posts_by_category'
+                  'callback' => 'get_latest_posts_by_category',
+                  'args' => array(
+                    'page' => array (
+                        'required' => true
+                    ),
+
+                )
         ));
   });
 
   function get_latest_posts_by_category($request) {
 
-    $stuff = connectToDatabase($request['image_id']);
+    $result_per_page = $request['page'];
+    $first_page = 1;
+
+
+
+    $database_data = connectToDatabase($request['image_id']);
+    $stuff = $database_data["attachments"];
+    $result_per_page = $database_data["number_of_result"];
 
     $request['image_id'];
 
     $args = array(
       'category' => $request['image_id']
-);
+    );
 
     $posts = get_posts($args);
 
     if (empty($stuff)) {
 
-    return new WP_Error( 'empty_category', 'there is no post in this category', array('status' => 404) );
+    return new WP_Error( 'empty_category', 'there is no images in this category', array('status' => 404) );
 
     }
 
@@ -57,6 +69,8 @@ EOD;
   $medias = connectToDatabase();
 
 }
+
+
 
 function connectToDatabase($folder_id) {
   $conn = new mysqli("localhost", "root", "", "wordpress");
@@ -84,7 +98,14 @@ function connectToDatabase($folder_id) {
 
   $result = $conn->query($sql);
 
-  // echo "<br />";
+  $sql = "SELECT * FROM wp_realmedialibrary_posts";
+
+  $result2 = $conn->query($sql);
+
+  $number_of_result = mysqli_num_rows($result2);
+
+  $database_data = array();
+  $database_data["number_of_result"] = $number_of_result;
 
   if ($result->num_rows > 0) {
 
@@ -117,7 +138,7 @@ function connectToDatabase($folder_id) {
               // echo $value["guid"]."<br />";
         }
 
-        return $attachments;
+        $database_data["attachments"] = $attachments;
 
          } else {
           // echo "NULL";
@@ -127,6 +148,8 @@ function connectToDatabase($folder_id) {
   } else {
     // echo "0 results";
   }
+
+  return $database_data;
 
   $conn->close();
 
