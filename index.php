@@ -25,14 +25,11 @@ Version: 0.1
 
   function get_latest_posts_by_category($request) {
 
-    $result_per_page = $request['page'];
-    $first_page = 1;
+    $current_page = $request['page'];
 
+    $database_data = connectToDatabase($request['image_id'], $current_page);
 
-
-    $database_data = connectToDatabase($request['image_id']);
     $stuff = $database_data["attachments"];
-    $result_per_page = $database_data["number_of_result"];
 
     $request['image_id'];
 
@@ -70,15 +67,15 @@ EOD;
 
 }
 
+function connectToDatabase($folder_id, $current_page) {
 
+  echo $current_page;
 
-function connectToDatabase($folder_id) {
   $conn = new mysqli("localhost", "root", "", "wordpress");
 
   if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
   }
-  // echo "Connected successfully <br />";
 
   $sql = "SELECT * FROM wp_realmedialibrary";
 
@@ -93,19 +90,20 @@ function connectToDatabase($folder_id) {
   } else {
     echo "0 results";
   }
-
   $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id'";
-
   $result = $conn->query($sql);
+  $number_of_result = mysqli_num_rows($result);
+  $first_page = 1;
+  $no_of_records_per_page = 10;
+  $offset = ($current_page - 1) * $no_of_records_per_page;
 
-  $sql = "SELECT * FROM wp_realmedialibrary_posts";
-
-  $result2 = $conn->query($sql);
-
-  $number_of_result = mysqli_num_rows($result2);
+  $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id LIMIT $offset, $no_of_records_per_page'";
 
   $database_data = array();
-  $database_data["number_of_result"] = $number_of_result;
+
+  $total_pages = ceil($number_of_result / $no_of_records_per_page);
+
+  echo $total_pages;
 
   if ($result->num_rows > 0) {
 
