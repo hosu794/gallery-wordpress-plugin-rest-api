@@ -27,9 +27,7 @@ Version: 0.1
 
     $current_page = $request['page'];
 
-    $database_data = connectToDatabase($request['image_id'], $current_page);
-
-    $stuff = $database_data["attachments"];
+    $stuff = connectToDatabase($request['image_id'], $current_page);
 
     $request['image_id'];
 
@@ -69,8 +67,6 @@ EOD;
 
 function connectToDatabase($folder_id, $current_page) {
 
-  echo $current_page;
-
   $conn = new mysqli("localhost", "root", "", "wordpress");
 
   if ($conn->connect_error) {
@@ -96,12 +92,15 @@ function connectToDatabase($folder_id, $current_page) {
   $first_page = 1;
   $no_of_records_per_page = 10;
   $offset = ($current_page - 1) * $no_of_records_per_page;
+  $prevPage = ($current_page - 1 <= 0) ? 0 : $current_page - 1;
 
   $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id LIMIT $offset, $no_of_records_per_page'";
 
   $database_data = array();
 
   $total_pages = ceil($number_of_result / $no_of_records_per_page);
+
+  $nextPage = ($current_page + 1 <= $total_pages) ? $total_pages : ($current_page + 1);
 
   echo $total_pages;
 
@@ -136,12 +135,15 @@ function connectToDatabase($folder_id, $current_page) {
               // echo $value["guid"]."<br />";
         }
 
-        $database_data["attachments"] = $attachments;
+        $attachments["pageCount"] = 10;
+        $attachments["nextPage"] = $nextPage;
+        $attachments["prevPage"] = $prevPage;
+
+       return $attachments;
 
          } else {
           // echo "NULL";
          }
-
 
   } else {
     // echo "0 results";
