@@ -13,7 +13,7 @@ Version: 0.1
     add_action('rest_api_init', function () {
     register_rest_route( 'api/v1', 'images/(?P<image_id>\d+)',array(
                   'methods'  => 'GET',
-                  'callback' => 'get_latest_posts_by_category',
+                  'callback' => 'get_latest_image_by_folder_id',
                   'args' => array(
                     'page' => array (
                         'required' => true
@@ -23,11 +23,32 @@ Version: 0.1
         ));
   });
 
-  function get_latest_posts_by_category($request) {
+  add_action('rest_api_init', function () {
+    register_rest_route( 'api/v1', 'folders/(?P<folder_Id>\d+)',array(
+                  'methods'  => 'GET',
+                  'callback' => 'get_folder_by_id',
+        ));
+  });
+
+  function get_folder_by_id($request) {
+
+    $folder_data = retrieve_folders_from_database();
+
+    if(empty($folder_data)) {
+      return new WP_Error( 'empty_folder', 'there is no folder!', array('status' => 404) );
+    }
+
+    $response = new WP_REST_Response($folder_data);
+    $response->set_status(200);
+
+    return $response;
+  }
+
+  function get_latest_image_by_folder_id($request) {
 
     $current_page = $request['page'];
 
-    $stuff = connectToDatabase($request['image_id'], $current_page);
+    $stuff = retrieve_medias_from_database($request['image_id'], $current_page);
 
     $request['image_id'];
 
@@ -35,7 +56,6 @@ Version: 0.1
       'category' => $request['image_id']
     );
 
-    $posts = get_posts($args);
 
     if (empty($stuff)) {
 
@@ -61,11 +81,41 @@ function exampleMenu()
 echo <<< 'EOD'
   <h2> Plugin to integrate sorting images by file option.</h2>
 EOD;
-  $medias = connectToDatabase();
+  $medias = retrieve_medias_from_database();
 
 }
 
-function connectToDatabase($folder_id, $current_page) {
+function retrieve_folders_from_database() {
+  $conn = new mysqli("localhost", "root", "", "wordpress");
+
+
+  if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+  }
+
+  $sql = "SELECT * FROM wp_realmedialibrary";
+
+  $result = $conn->query($sql);
+
+  if($result->num_rows > 0) {
+
+
+    $attachments = [];
+
+    while($row = mysqli_fetch_array($result))
+    {
+      $attachments[] = $row;
+    }
+
+    return $attachments;
+
+  }
+
+  $conn->close();
+
+}
+
+function retrieve_medias_from_database($folder_id, $current_page) {
 
   $conn = new mysqli("localhost", "root", "", "wordpress");
 
@@ -140,10 +190,6 @@ function connectToDatabase($folder_id, $current_page) {
             $attachments[] = $row;
         }
 
-        foreach ($attachments as &$value) {
-              // echo $value["post_mime_type"]."<br />";
-              // echo $value["guid"]."<br />";
-        }
 
         //Set values to array
         $attachments["pageCount"] = 10;
