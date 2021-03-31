@@ -3,12 +3,11 @@
 /*
 Plugin Name: Media Folder Grapql
 Plugin URI:
-Description: Grapql api with sorted medias by folder.
+Description: Grapql api with sorted medias by folder. NEED real-media-library-lite plugin to work!!!
 Author: Grzegorz Szczęsny
 Author URI: intelligentprogrammer.com
 Version: 0.1
 */
-
 
     add_action('rest_api_init', function () {
     register_rest_route( 'api/v1', 'images/(?P<image_id>\d+)',array(
@@ -24,7 +23,7 @@ Version: 0.1
   });
 
   add_action('rest_api_init', function () {
-    register_rest_route( 'api/v1', 'folders/(?P<folder_Id>\d+)',array(
+    register_rest_route( 'api/v1', 'folders',array(
                   'methods'  => 'GET',
                   'callback' => 'get_folder_by_id',
         ));
@@ -56,7 +55,6 @@ Version: 0.1
       'category' => $request['image_id']
     );
 
-
     if (empty($stuff)) {
 
     return new WP_Error( 'empty_category', 'there is no images in this category', array('status' => 404) );
@@ -86,8 +84,7 @@ EOD;
 }
 
 function retrieve_folders_from_database() {
-  $conn = new mysqli("localhost", "root", "", "wordpress");
-
+  $conn = new mysqli("serwer2124775.home.pl", "34194846_strona", "ZAQ12wsx@#", "34194846_strona");
 
   if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -98,7 +95,6 @@ function retrieve_folders_from_database() {
   $result = $conn->query($sql);
 
   if($result->num_rows > 0) {
-
 
     $attachments = [];
 
@@ -117,7 +113,7 @@ function retrieve_folders_from_database() {
 
 function retrieve_medias_from_database($folder_id, $current_page) {
 
-  $conn = new mysqli("localhost", "root", "", "wordpress");
+  $conn = new mysqli("serwer2124775.home.pl", "34194846_strona", "ZAQ12wsx@#", "34194846_strona");
 
   if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -154,7 +150,7 @@ function retrieve_medias_from_database($folder_id, $current_page) {
   //Calculate a previous page.
   $prevPage = ($current_page - 1 <= 0) ? 0 : $current_page - 1;
 
-  $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id LIMIT $offset, $no_of_records_per_page'";
+  $sql = "SELECT * FROM wp_realmedialibrary_posts LIMIT $offset, $no_of_records_per_page'";
 
   $database_data = array();
 
@@ -162,7 +158,6 @@ function retrieve_medias_from_database($folder_id, $current_page) {
   $total_pages = ceil($number_of_result / $no_of_records_per_page);
 
   $nextPage = ($current_page + 1 <= $total_pages) ? $total_pages : ($current_page + 1);
-
 
   if ($result->num_rows > 0) {
 
@@ -198,14 +193,9 @@ function retrieve_medias_from_database($folder_id, $current_page) {
 
        return $attachments;
 
-         } else {
-          // echo "NULL";
          }
 
-  } else {
-    // echo "0 results";
   }
-
   return $database_data;
 
   $conn->close();
