@@ -49,8 +49,6 @@ Version: 0.1
 
     $stuff = retrieve_medias_from_database($request['image_id'], $current_page);
 
-    $request['image_id'];
-
     $args = array(
       'category' => $request['image_id']
     );
@@ -179,24 +177,25 @@ function retrieve_medias_from_database($folder_id, $current_page) {
 
          if($result->num_rows > 0) {
 
-          $attachments = [];
-        while($row = mysqli_fetch_array($result))
-        {
-            $attachments[] = $row;
-        }
+          $mediasAttachments = [];
+          while($row = mysqli_fetch_array($result))
+          {
+            $mediasAttachments[] = $row;
+          }
 
 
-        //Set values to array
-        $attachments["pageCount"] = 10;
-        $attachments["nextPage"] = $nextPage;
-        $attachments["prevPage"] = $prevPage;
+          $folderResponse = [];
+          $folderResponse['content'] = $mediasAttachments;
+          $folderResponse['pageCount'] = 10;
+          $folderResponse['nextPage'] = $nextPage;
+          $folderResponse['prevPage'] = $prevPage;
 
-       return $attachments;
+        return $folderResponse;
+
 
          }
 
   }
-  return $database_data;
 
   $conn->close();
 
