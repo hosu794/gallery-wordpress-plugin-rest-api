@@ -82,7 +82,7 @@ EOD;
 }
 
 function retrieve_folders_from_database() {
-  $conn = new mysqli("serwer2124775.home.pl", "34194846_strona", "ZAQ12wsx@#", "34194846_strona");
+  $conn = new mysqli("localhost", "root", "", "wordpress");
 
   if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -111,30 +111,18 @@ function retrieve_folders_from_database() {
 
 function retrieve_medias_from_database($folder_id, $current_page) {
 
-  $conn = new mysqli("serwer2124775.home.pl", "34194846_strona", "ZAQ12wsx@#", "34194846_strona");
+  $conn = new mysqli("localhost", "root", "", "wordpress");
 
   if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
   }
 
-  $sql = "SELECT * FROM wp_realmedialibrary";
+  $sql = "SELECT * FROM wp_realmedialibrary_posts";
+
 
   $result = $conn->query($sql);
 
-  if ($result->num_rows > 0) {
-
-    // output data of each row
-    while($row = $result->fetch_assoc()) {
-      // echo "id:".$row["id"]. "name: ".$row["name"];
-    }
-  } else {
-    // echo "0 results";
-  }
-  $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id'";
-  $result = $conn->query($sql);
-
-  //Count a total count of images.
-  $number_of_result = mysqli_num_rows($result);
+ 
 
   //First page
   $first_page = 0;
@@ -143,18 +131,23 @@ function retrieve_medias_from_database($folder_id, $current_page) {
   $no_of_records_per_page = 10;
 
   //Calculate a offset of current page
-  $offset = ($current_page - 1) * $no_of_records_per_page;
+  $offset = (($current_page - 1) * $no_of_records_per_page) + 10;
 
   //Calculate a previous page.
   $prevPage = ($current_page - 1 <= 0) ? 0 : $current_page - 1;
 
-  $sql = "SELECT * FROM wp_realmedialibrary_posts LIMIT $offset, $no_of_records_per_page'";
+  $number_of_result = 10;
+  
+  $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id' LIMIT $offset, $number_of_result";
+  $result = $conn->query($sql);
+
 
   $database_data = array();
 
   //Calculate a total pages of images
   $total_pages = ceil($number_of_result / $no_of_records_per_page);
 
+  //Calculate a next page. 
   $nextPage = ($current_page + 1 <= $total_pages) ? $total_pages : ($current_page + 1);
 
   if ($result->num_rows > 0) {
@@ -165,13 +158,15 @@ function retrieve_medias_from_database($folder_id, $current_page) {
             $rows[] = $row["attachment"];
         }
 
+        $implode = implode(',', array_map('intval', $rows));
+
         foreach ($rows as &$value) {
           // echo $value."<br />";
              }
 
              $sql = 'SELECT *
           FROM `wp_posts`
-         WHERE `id` IN (' . implode(',', array_map('intval', $rows)) . ')';
+         WHERE `id` IN (' . $implode . ")";
 
          $result = $conn->query($sql);
 
@@ -183,17 +178,24 @@ function retrieve_medias_from_database($folder_id, $current_page) {
             $mediasAttachments[] = $row;
           }
 
-
           $folderResponse = [];
           $folderResponse['content'] = $mediasAttachments;
           $folderResponse['pageCount'] = 10;
           $folderResponse['nextPage'] = $nextPage;
           $folderResponse['prevPage'] = $prevPage;
+          $folderResponse['currentPage'] = $current_page;
 
-        return $folderResponse;
-
+         } else {
+          $folderResponse = [];
+          $folderResponse['content'] = $mediasAttachments;
+          $folderResponse['pageCount'] = 10;
+          $folderResponse['nextPage'] = $nextPage;
+          $folderResponse['prevPage'] = $prevPage;
+          $folderResponse['currentPage'] = $current_page;
 
          }
+
+         return $folderResponse;
 
   }
 
