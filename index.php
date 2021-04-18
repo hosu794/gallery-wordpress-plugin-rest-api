@@ -82,7 +82,7 @@ EOD;
 }
 
 function retrieve_folders_from_database() {
-  $conn = new mysqli("localhost", "root", "", "wordpress");
+  $conn = new mysqli("serwer2124775.home.pl", "34194846_strona", "ZAQ12wsx@#", "34194846_strona");
 
   if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -111,18 +111,17 @@ function retrieve_folders_from_database() {
 
 function retrieve_medias_from_database($folder_id, $current_page) {
 
-  $conn = new mysqli("localhost", "root", "", "wordpress");
+  $conn = new mysqli("serwer2124775.home.pl", "34194846_strona", "ZAQ12wsx@#", "34194846_strona");;
 
   if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
   }
 
-  $sql = "SELECT * FROM wp_realmedialibrary_posts";
-
+  $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id'";
 
   $result = $conn->query($sql);
-
  
+  $number_of_result = $result->num_rows;
 
   //First page
   $first_page = 0;
@@ -136,11 +135,8 @@ function retrieve_medias_from_database($folder_id, $current_page) {
   //Calculate a previous page.
   $prevPage = ($current_page - 1 <= 0) ? 0 : $current_page - 1;
 
-  $number_of_result = 10;
-  
   $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id' LIMIT $offset, $number_of_result";
   $result = $conn->query($sql);
-
 
   $database_data = array();
 
@@ -149,6 +145,9 @@ function retrieve_medias_from_database($folder_id, $current_page) {
 
   //Calculate a next page. 
   $nextPage = ($current_page + 1 <= $total_pages) ? $total_pages : ($current_page + 1);
+
+  //Calculate a hasMore 
+  $hasMore = (($total_pages - 1) <= $current_page) ? false : true; 
 
   if ($result->num_rows > 0) {
 
@@ -184,6 +183,8 @@ function retrieve_medias_from_database($folder_id, $current_page) {
           $folderResponse['nextPage'] = $nextPage;
           $folderResponse['prevPage'] = $prevPage;
           $folderResponse['currentPage'] = $current_page;
+          $folderResponse['totalPages'] = $total_pages;
+          $folderResponse['hasMore'] = $hasMore; 
 
          } else {
           $folderResponse = [];
@@ -192,6 +193,8 @@ function retrieve_medias_from_database($folder_id, $current_page) {
           $folderResponse['nextPage'] = $nextPage;
           $folderResponse['prevPage'] = $prevPage;
           $folderResponse['currentPage'] = $current_page;
+          $folderResponse['totalPages'] = $total_pages;
+          $folderResponse['hasMore'] = $hasMore; 
 
          }
 
