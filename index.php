@@ -22,14 +22,39 @@ Version: 0.1
         ));
   });
 
-  add_action('rest_api_init', function () {
-    register_rest_route( 'api/v1', 'folders',array(
+   add_action('rest_api_init', function () {
+    register_rest_route( 'api/v1', 'folders/(?P<folder_id>\d+)',array(
                   'methods'  => 'GET',
                   'callback' => 'get_folder_by_id',
         ));
   });
 
+  add_action('rest_api_init', function () {
+    register_rest_route( 'api/v1', 'folders',array(
+                  'methods'  => 'GET',
+                  'callback' => 'get_folders',
+        ));
+  });
+
   function get_folder_by_id($request) {
+
+    $id = $request['folder_id']; 
+
+    $folder = retrieve_folder_by_id($id); 
+
+    if(empty($folder)) {
+      return new WP_Error('empty_folder_id', "there is no folder", array('status' => 404)); 
+    }
+
+    $response = new WP_REST_Response($folder); 
+    $response->set_status(200); 
+
+    return $response; 
+
+  }
+
+
+  function get_folders($request) {
 
     $folder_data = retrieve_folders_from_database();
 
@@ -78,6 +103,35 @@ echo <<< 'EOD'
   <h2> Plugin to integrate sorting images by file option.</h2>
 EOD;
   $medias = retrieve_medias_from_database();
+
+}
+
+
+function retrieve_folder_by_id($folder_id) {
+  $conn = new mysqli("serwer2124775.home.pl", "34194846_strona", "ZAQ12wsx@#", "34194846_strona");
+
+  if($conn->connect_error) {
+    die("Connection failed ". $conn->connect_error); 
+  }
+
+  $sql = "SELECT * FROM wp_realmedialibrary WHERE id = $folder_id"; 
+
+  $result = $conn->query($sql); 
+
+  if($result->num_rows > 0) {
+    $folder_attachment = []; 
+
+    while($row = mysqli_fetch_array($result))
+    {
+      $folder_attachment[] = $row;
+    }
+
+
+    return $folder_attachment; 
+
+  }
+
+  $conn->close(); 
 
 }
 
