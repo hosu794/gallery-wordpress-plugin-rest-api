@@ -189,7 +189,7 @@ function retrieve_medias_from_database($folder_id, $current_page) {
   //Calculate a previous page.
   $prevPage = ($current_page - 1 <= 0) ? 0 : $current_page - 1;
 
-  $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id' LIMIT $offset, $number_of_result";
+  $sql = "SELECT * FROM wp_realmedialibrary_posts WHERE fid = '$folder_id' LIMIT $offset, $no_of_records_per_page";
   $result = $conn->query($sql);
 
   $database_data = array();
