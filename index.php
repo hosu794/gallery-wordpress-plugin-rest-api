@@ -92,6 +92,7 @@ Version: 0.1
 
 
 add_action("admin_menu", "addMenu");
+
 function addMenu()
 {
   add_menu_page("Media Folder Grapql", "Media Folder Grapql", 4, "example-options", "exampleMenu" );
